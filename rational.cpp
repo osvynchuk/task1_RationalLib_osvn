@@ -33,6 +33,7 @@ void rational_t::reduce() {
 }
 
 rational_t& rational_t::operator += (const rational_t& rhs) {
+    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
     m_num = m_num * rhs.m_den + rhs.m_num * m_den;
     m_den = m_den * rhs.m_den;
     reduce();
@@ -47,6 +48,7 @@ rational_t& rational_t::operator -= (const rational_t& rhs) {
 }
 
 rational_t& rational_t::operator *= (const rational_t& rhs) {
+    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
     m_num *= rhs.m_num;
     m_den *= rhs.m_den;
     reduce();
@@ -62,6 +64,7 @@ rational_t& rational_t::operator /= (const rational_t& rhs) {
 }
 
 bool rational_t::operator == (const rational_t& rhs) const {
+    if (is_nan() || rhs.is_nan() || is_inf() || rhs.is_inf()) return false;
     return m_num == rhs.m_num && m_den == rhs.m_den;
 }
 
@@ -70,10 +73,13 @@ bool rational_t::operator != (const rational_t& rhs) const {
 }
 
 bool rational_t::operator < (const rational_t& rhs) const {
+    if (is_nan() || is_inf()) return false;
+    else if (rhs.is_inf()) return true;
     return (float)m_num/m_den < (float)rhs.m_num/rhs.m_den;
 }
 
 bool rational_t::operator > (const rational_t& rhs) const {
+    if (is_nan() || rhs.is_nan() || rhs.is_inf()) return false;
     return *this != rhs && !(*this < rhs);
 }
 
@@ -94,14 +100,12 @@ rational_t operator / (rational_t lhs, const rational_t& rhs) {
 }
 
 std::ostream& operator << (std::ostream& os, const rational_t& rhs) {
-    if (rhs.m_num == 0)
+    if (rhs.m_num == 0 && !rhs.is_nan())
         os << 0;
     else if (rhs.m_den == 1)
         os << rhs.m_num;
     else
         os << rhs.m_num << "/" << rhs.m_den;
-//    if (rhs.m_num == 0 && rhs.m_den == 0) os << " (NaN)";
-//    if (rhs.m_num != 0 && rhs.m_den == 0) os << " (Inf)";
     return os;
 }
 
@@ -125,4 +129,14 @@ std::istream& operator >> (std::istream& is, rational_t& rhs) {
 
     rhs.reduce();
     return is;
+}
+
+bool rational_t::is_nan() const {
+    if (m_num == 0 && m_den == 0) return true;
+    return false;
+}
+
+bool rational_t::is_inf() const {
+    if (m_num != 0 && m_den == 0) return true;
+    return false;
 }

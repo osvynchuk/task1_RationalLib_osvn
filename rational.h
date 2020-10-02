@@ -21,8 +21,13 @@ public:
     bool operator > (const rational_t& rhs) const;
     friend std::ostream& operator << (std::ostream& os, const rational_t& rhs);
     friend std::istream& operator >> (std::istream& is, rational_t& rhs);
+    int get_num() { return m_num; };
+    int get_den() { return m_den; };
+
 private:
     void reduce();
+    bool is_nan() const;
+    bool is_inf() const;
     int m_num =0;
     int m_den =0;
 };

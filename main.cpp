@@ -2,19 +2,55 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 //
-// CPP course
+// CPP course, task 1
 // (c) Oleksiy Svynchuk
 //
 #include <iostream>
 #include <set>
 #include <sstream>
+#include <chrono>
 #include "rational.h"
 
-void run_some_tests();
+// NOTE:
+// To run unit tests select appropriate project: task1_RationalLib_TEST_osvn
+//
 
+using namespace cpp_course;
+
+rational_t calculate_pi () {
+    rational_t pi {4};
+
+    for (int n=1; n < 100; ++n) {
+        auto num = (n % 2 == 0 ? 4 : -4);
+        auto den = (n << 1) + 1;
+        rational_t frac {num, den};
+        if (pi.get_num() * den + num * pi.get_den() < 0l) break;
+        if (pi.get_den() * den < 0l) break;
+
+        pi += frac;
+    }
+    return pi;
+}
 
 int main() {
+    std::cout << "Calculating Pi..." << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    auto pi = calculate_pi();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Pi : " << pi << std::endl;
+    std::cout << "Pi : " << static_cast<double>(pi) << std::endl;
+
+    std::cout << "found in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    return 0;
+}
+
+
+#if 0
+int main() {
     try {
+        // Testing console in/out + several basic operations
         // Input 2 numbers
         rational_t rnum2;
         std::cout << "Input a rational number, in form num/denum: " << std::endl;
@@ -57,9 +93,6 @@ int main() {
         for (auto& ent: rset) { std::cout << ent << ", "; }
         std::cout << std::endl;
 
-        // Run tests
-        run_some_tests();
-
     } catch (std::exception& ex) {
         std::cout << "Error: " << ex.what() << std::endl;
         return 1;
@@ -67,125 +100,4 @@ int main() {
 
     return 0;
 }
-
-void run_some_tests() {
-
-    auto throw_error = [] (auto& oper, int line) {
-        std::stringstream strm;
-        strm << "Test case (" << oper << ") failed at line: " << line;
-        throw std::runtime_error(strm.str());
-    };
-
-    rational_t rnum1 {1,2};
-    rational_t rnum2 {2,3};
-
-    if ((rnum1 + rnum2) != rational_t(7,6))
-         throw_error("+", __LINE__);
-
-    if ((rnum1 - rnum2) != rational_t(-1,6))
-         throw_error("-", __LINE__);
-
-    if ((rnum1 * rnum2) != rational_t(1,3))
-         throw_error("*", __LINE__);
-
-    if ((rnum1 / rnum2) != rational_t(3,4))
-         throw_error("/", __LINE__);
-
-    if ((rnum1 == rnum2) != false)
-         throw_error("==", __LINE__);
-
-    if ((rnum1 < rnum2) != true)
-        throw_error("<", __LINE__);
-
-    // infinity
-    rnum1 = {1,0};
-    rnum2 = {2,0};
-
-
-    auto res = rnum1 + rnum2;
-    if (res.get_num() != 1 && res.get_den() != 0) // inf
-        throw_error("+", __LINE__);
-
-    res = rnum1 - rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0) // NaN
-        throw_error("-", __LINE__);
-
-    res = rnum1 * rnum2;
-    if (res.get_num() != 1 && res.get_den() != 0) // inf
-        throw_error("*", __LINE__);
-
-    res = rnum1 / rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0) // NaN
-        throw_error("/", __LINE__);
-
-    res = rnum1 * rational_t{0};
-    if (res.get_num() != 0 && res.get_den() != 0) // NaN
-        throw_error("*", __LINE__);
-
-
-    if ((rational_t{1,2} / rnum2) != rational_t(0))
-        throw_error("/", __LINE__);
-
-    if ((rnum1 == rnum2) != false) {
-        throw_error("==", __LINE__);
-    }
-    if ((rnum1 > rnum2) != false) {
-        throw_error(">", __LINE__);
-    }
-    if ((rnum1 < rnum2) != false) {
-        throw_error("<", __LINE__);
-    }
-    if ((rnum1 != rnum2) != true) {
-        throw_error("!=", __LINE__);
-    }
-
-
-    // NaN
-    rnum1 = {0,0};
-    rnum2 = rnum1;
-    {
-    auto res = rnum1 + rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0)
-        throw_error("+", __LINE__);
-
-    res = rnum1 - rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0)
-        throw_error("-", __LINE__);
-
-    res = rnum1 * rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0)
-        throw_error("*", __LINE__);
-
-    res = rnum1 / rnum2;
-    if (res.get_num() != 0 && res.get_den() != 0)
-        throw_error("/", __LINE__);
-    }
-
-    if ((rnum1 == rational_t{2,2}) != false) {
-        throw_error("==", __LINE__);
-    }
-    if ((rnum1 > rational_t{2,2}) != false) {
-        throw_error(">", __LINE__);
-    }
-    if ((rnum1 < rational_t{2,2}) != false) {
-        throw_error("<", __LINE__);
-    }
-    if ((rnum1 != rational_t{2,2}) != true) {
-        throw_error("!=", __LINE__);
-    }
-    if ((rnum1 == rnum2) != false) {
-        throw_error("==", __LINE__);
-    }
-    if ((rnum1 > rnum2) != false) {
-        throw_error(">", __LINE__);
-    }
-    if ((rnum1 < rnum2) != false) {
-        throw_error("<", __LINE__);
-    }
-    if ((rnum1 != rnum2) != true) {
-        throw_error("!=", __LINE__);
-    }
-
-    // TODO
-
-}
+#endif

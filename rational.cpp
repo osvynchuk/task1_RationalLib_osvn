@@ -10,8 +10,13 @@
 #include <boost/algorithm/string.hpp>
 #include "rational.h"
 
+namespace cpp_course {
 
-rational_t::rational_t(int num, int den) : m_num{num}, m_den{den} {
+const rational_t rational_t::ZERO {0};
+const rational_t rational_t::INF {1,0};
+const rational_t rational_t::NaN {0,0};
+
+rational_t::rational_t(long long num, long long den) : m_num{num}, m_den{den} {
     if (m_den < 0) {
         throw std::invalid_argument("Incorrect format");
     }
@@ -63,6 +68,40 @@ rational_t& rational_t::operator /= (const rational_t& rhs) {
     return *this;
 }
 
+rational_t& rational_t::operator += (long long rhs) {
+    m_num += rhs * m_den;
+    reduce();
+    return  *this;
+}
+
+rational_t& rational_t::operator -= (long long rhs) {
+    m_num -= rhs * m_den;
+    reduce();
+    return  *this;
+}
+
+rational_t& rational_t::operator ++ () {
+    *this += 1;
+    return *this;
+}
+
+rational_t& rational_t::operator -- () {
+    *this -= 1;
+    return *this;
+}
+
+rational_t rational_t::operator ++ (int) {
+    rational_t tmp(*this);
+    ++*this;
+    return tmp;
+}
+
+rational_t rational_t::operator -- (int) {
+    rational_t tmp(*this);
+    --*this;
+    return tmp;
+}
+
 bool rational_t::operator == (const rational_t& rhs) const {
     if (is_nan() || rhs.is_nan() || is_inf() || rhs.is_inf()) return false;
     return m_num == rhs.m_num && m_den == rhs.m_den;
@@ -75,12 +114,24 @@ bool rational_t::operator != (const rational_t& rhs) const {
 bool rational_t::operator < (const rational_t& rhs) const {
     if (is_nan() || is_inf()) return false;
     else if (rhs.is_inf()) return true;
-    return (float)m_num/m_den < (float)rhs.m_num/rhs.m_den;
+    return static_cast<double>(*this) < static_cast<double>(rhs);
 }
 
 bool rational_t::operator > (const rational_t& rhs) const {
     if (is_nan() || rhs.is_nan() || rhs.is_inf()) return false;
     return *this != rhs && !(*this < rhs);
+}
+
+rational_t rational_t::operator + () const {
+    return *this;
+}
+
+rational_t rational_t::operator - () const {
+    return {-get_num(), get_den()};
+}
+
+rational_t::operator double () const {
+    return static_cast<double>(m_num)/m_den;
 }
 
 rational_t operator + (rational_t lhs, const rational_t& rhs) {
@@ -139,4 +190,77 @@ bool rational_t::is_nan() const {
 bool rational_t::is_inf() const {
     if (m_num != 0 && m_den == 0) return true;
     return false;
+}
+
+rational_t abs(const rational_t& rhs) {
+    if (rhs.is_nan()) return rhs;
+    rational_t tmp {rhs.get_num() < 0 ? -rhs.get_num() : rhs.get_num(), rhs.get_den()};
+    return tmp;
+}
+
+rational_t max(const rational_t& lhs, const rational_t& rhs) {
+    if (lhs.is_nan() && rhs.is_nan()) return lhs;
+    else if (lhs.is_nan() && !rhs.is_nan()) return rhs;
+    else if (rhs.is_nan() && !lhs.is_nan()) return lhs;
+    return lhs < rhs ? rhs : lhs;
+}
+
+rational_t min(const rational_t& lhs, const rational_t& rhs) {
+    if (lhs.is_nan() && rhs.is_nan()) return lhs;
+    else if (lhs.is_nan() && !rhs.is_nan()) return rhs;
+    else if (rhs.is_nan() && !lhs.is_nan()) return lhs;
+    return lhs < rhs ? lhs : rhs;
+}
+
+rational_t dim(const rational_t& lhs, const rational_t& rhs) {
+    if (lhs.is_nan() || rhs.is_nan()) return rational_t{0,0};
+    if (lhs > rhs) return lhs - rhs;
+    else return rational_t::ZERO;
+}
+
+rational_t ceil(const rational_t& rhs) {
+    if (rhs.is_inf() || rhs.is_nan() || rhs == rational_t::ZERO) return rhs;
+    auto num = rhs.get_num();
+    while (num % rhs.get_den()) ++num;
+    return {num, rhs.get_den()};
+}
+
+rational_t floor(const rational_t& rhs) {
+    if (rhs.is_inf() || rhs.is_nan() || rhs == rational_t::ZERO) return rhs;
+    auto num = rhs.get_num();
+    while (num % rhs.get_den()) --num;
+    return {num, rhs.get_den()};
+}
+
+rational_t round(const rational_t& rhs) {
+    if (rhs.is_inf() || rhs.is_nan() || rhs == rational_t::ZERO) return rhs;
+     return {static_cast<int>(std::round(static_cast<double>(rhs))), 1};
+}
+
+bool isnan(const rational_t& rhs) {
+    return rhs.is_nan();
+}
+
+bool isinf(const rational_t& rhs) {
+    return rhs.is_inf();
+}
+
+rational_t modf(const rational_t& rhs, rational_t& i_part) {
+    if (rhs == rational_t::ZERO) {
+        i_part = rational_t::ZERO;
+        return i_part;
+    }
+    else if (rhs.is_inf() ) {
+        i_part = rational_t::INF;
+        return rational_t::ZERO;
+    }
+    else if (rhs.is_nan() ) {
+        i_part = rational_t::NaN;
+        return rational_t::NaN;
+    }
+
+    i_part = floor(rhs);
+    return rhs - i_part;
+}
+
 }

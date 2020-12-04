@@ -24,48 +24,11 @@ rational_t::rational_t(long long num, long long den) : m_num{num}, m_den{den} {
 }
 
 void rational_t::reduce() {
-    int min = std::abs(std::min(m_num, m_den));
-    while (min > 1) {
-        if (m_num % min == 0 && m_den % min == 0) break;
-        min--;
+    auto cd = gcd(m_num, m_den);
+    if (cd != 0) {
+     m_num /= cd;
+     m_den /= cd;
     }
-    if (min > 1) {
-        m_num /= min;
-        m_den /= min;
-    }
-
-    if (m_num == 0 && m_den != 0) m_den = 1;
-}
-
-rational_t& rational_t::operator += (const rational_t& rhs) {
-    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
-    m_num = m_num * rhs.m_den + rhs.m_num * m_den;
-    m_den = m_den * rhs.m_den;
-    reduce();
-    return *this;
-}
-
-rational_t& rational_t::operator -= (const rational_t& rhs) {
-    m_num = m_num * rhs.m_den - rhs.m_num * m_den ;
-    m_den = m_den * rhs.m_den;
-    reduce();
-    return *this;
-}
-
-rational_t& rational_t::operator *= (const rational_t& rhs) {
-    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
-    m_num *= rhs.m_num;
-    m_den *= rhs.m_den;
-    reduce();
-    return *this;
-}
-
-rational_t& rational_t::operator /= (const rational_t& rhs) {
-    m_num *= rhs.m_den;
-    m_den *= rhs.m_num;
-    if (m_den < 0) {m_den *= -1; m_num *= -1;}
-    reduce();
-    return *this;
 }
 
 rational_t& rational_t::operator += (long long rhs) {

@@ -20,10 +20,10 @@ public:
     rational_t& operator = (const rational_t& rhs) = default;
     ~rational_t() = default;
     rational_t(long long num, long long den = 1);
-    rational_t& operator += (const rational_t& rhs);
-    rational_t& operator -= (const rational_t& rhs);
-    rational_t& operator *= (const rational_t& rhs);
-    rational_t& operator /= (const rational_t& rhs);
+    inline rational_t& operator += (const rational_t& rhs);
+    inline rational_t& operator -= (const rational_t& rhs);
+    inline rational_t& operator *= (const rational_t& rhs);
+    inline rational_t& operator /= (const rational_t& rhs);
     rational_t& operator += (long long rhs);
     rational_t& operator -= (long long rhs);
     rational_t& operator ++ ();
@@ -45,10 +45,45 @@ public:
     bool is_inf() const;
 
 private:
+    static long long gcd (long long a, long long b) {
+         if (a==0) return b;
+         return gcd(b % a, a);
+    }
     void reduce();
     long long m_num =0;
     long long m_den =0;
 };
+
+rational_t& rational_t::operator += (const rational_t& rhs) {
+    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
+    m_num = m_num * rhs.m_den + rhs.m_num * m_den;
+    m_den = m_den * rhs.m_den;
+    reduce();
+    return *this;
+}
+
+rational_t& rational_t::operator -= (const rational_t& rhs) {
+    m_num = m_num * rhs.m_den - rhs.m_num * m_den ;
+    m_den = m_den * rhs.m_den;
+    reduce();
+    return *this;
+}
+
+rational_t& rational_t::operator *= (const rational_t& rhs) {
+    if (is_inf() && rhs.is_inf()) { m_num = 1; m_den = 0; return *this;}
+    m_num *= rhs.m_num;
+    m_den *= rhs.m_den;
+    reduce();
+    return *this;
+}
+
+rational_t& rational_t::operator /= (const rational_t& rhs) {
+    m_num *= rhs.m_den;
+    m_den *= rhs.m_num;
+    if (m_den < 0) {m_den *= -1; m_num *= -1;}
+    reduce();
+    return *this;
+}
 
 rational_t operator + (rational_t lhs, const rational_t& rhs);
 rational_t operator - (rational_t lhs, const rational_t& rhs);

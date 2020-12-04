@@ -48,6 +48,39 @@ int main() {
 
 
 #if 0
+
+rational_t calculate_pi () {
+    rational_t int_pi {0};
+    rational_t pi {4};
+    double r = 4;
+
+    rational_t frac;
+
+    for (int n=1; n < 20; ++n) {
+        auto num = (n % 2 == 0 ? 4 : -4);
+        auto den = (n << 1) + 1;
+
+        frac = rational_t {num, den};
+
+        //rational_t frac {num, den};
+        //if (pi.get_num() * den + num * pi.get_den() < 0l) break;
+        //if (pi.get_den() * den > 0xFFFFFFFF/2) break;
+
+        pi += frac;
+        //r += (double)frac;
+
+        if (pi.get_num() > pi.get_den()) {
+            auto fl = floor(pi);
+            pi = pi - fl;
+            int_pi += fl;
+        }
+    }
+    r = (double)pi;
+
+    return pi;
+}
+
+
 int main() {
     try {
         // Testing console in/out + several basic operations

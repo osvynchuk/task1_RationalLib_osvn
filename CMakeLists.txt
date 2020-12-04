@@ -8,6 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(task1_RationalLib_osvn main.cpp rational.cpp rational.h)
 
+find_package( Boost REQUIRED)
+include_directories( ${Boost_INCLUDE_DIRS} )
+target_link_libraries(task1_RationalLib_osvn ${Boost_LIBRARIES} )
+
 
 ##################################
 # Download and install GoogleTest
